@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Research Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #16213e;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .panel {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #e94560;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #a0a0a0;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #533483;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #e94560;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #ff6b6b;
+        }
+
+        button:disabled {
+            background: #533483;
+            cursor: not-allowed;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-group button {
+            flex: 1;
+        }
+
+        .board-container {
+            position: relative;
+        }
+
+        #board {
+            width: 480px;
+            height: 480px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f3460;
+            padding: 15px 20px;
+            border-radius: 8px;
+            width: 480px;
+        }
+
+        .status-text {
+            font-size: 14px;
+        }
+
+        .status-highlight {
+            color: #e94560;
+            font-weight: 600;
+        }
+
+        .eval-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eval-bar {
+            width: 20px;
+            height: 60px;
+            background: #1a1a2e;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .eval-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, #e94560, #ff6b6b);
+            transition: height 0.3s;
+        }
+
+        .eval-value {
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .move-list {
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .move-row {
+            display: flex;
+            padding: 5px 0;
+            border-bottom: 1px solid #533483;
+        }
+
+        .move-number {
+            width: 40px;
+            color: #a0a0a0;
+        }
+
+        .move {
+            flex: 1;
+            padding: 2px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .move:hover {
+            background: #533483;
+        }
+
+        .move.current {
+            background: #e94560;
+        }
+
+        .move.white {
+            color: #ffffff;
+        }
+
+        .move.black {
+            color: #a0a0a0;
+        }
+
+        .parameter-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .parameter-input input[type="range"] {
+            flex: 1;
+        }
+
+        .parameter-value {
+            min-width: 40px;
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch input[type="checkbox"] {
+            width: auto;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.connected {
+            background: #4caf50;
+        }
+
+        .status-dot.disconnected {
+            background: #f44336;
+        }
+
+        .ai-indicator {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            color: #e94560;
+            font-size: 12px;
+        }
+
+        .ai-indicator.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid #e94560;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #533483;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="panel">
+                <h3>Connection</h3>
+                <div class="connection-status">
+                    <div id="statusDot" class="status-dot disconnected"></div>
+                    <span id="connectionStatus">Disconnected</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>White Agent</h3>
+                <div class="control-group">
+                    <label>Algorithm</label>
+                    <select id="whiteAgentType">
+                        <option value="random">Random</option>
+                        <option value="minimax">Minimax</option>
+                        <option value="mcts">MCTS</option>
+                        <option value="stockfish">Stockfish</option>
+                    </select>
+                </div>
+                <div id="whiteAgentParams"></div>
+            </div>
+
+            <div class="panel">
+                <h3>Black Agent</h3>
+                <div class="control-group">
+                    <label>Algorithm</label>
+                    <select id="blackAgentType">
+                        <option value="random">Random</option>
+                        <option value="minimax">Minimax</option>
+                        <option value="mcts">MCTS</option>
+                        <option value="stockfish">Stockfish</option>
+                    </select>
+                </div>
+                <div id="blackAgentParams"></div>
+            </div>
+
+            <div class="panel">
+                <h3>Game Controls</h3>
+                <div class="control-group">
+                    <button id="newGameBtn">New Game</button>
+                </div>
+                <div class="control-group">
+                    <button id="resetGameBtn">Reset Game</button>
+                </div>
+                <div class="control-group">
+                    <button id="aiMoveBtn">AI Move</button>
+                </div>
+                <div class="control-group">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="autoPlayToggle">
+                        <label for="autoPlayToggle">Auto Play (AI vs AI)</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <div class="status-bar">
+                <div class="status-text">
+                    <span id="turnIndicator">White to move</span>
+                    <span id="gameStatus" class="status-highlight"></span>
+                </div>
+                <div class="eval-container">
+                    <div class="ai-indicator" id="aiIndicator">
+                        <div class="spinner"></div>
+                        <span>AI Thinking...</span>
+                    </div>
+                    <div class="eval-bar">
+                        <div id="evalFill" class="eval-fill" style="height: 50%;"></div>
+                    </div>
+                    <div id="evalValue" class="eval-value">0.0</div>
+                </div>
+            </div>
+
+            <div class="board-container">
+                <div id="board"></div>
+            </div>
+
+            <div class="panel" style="width: 480px;">
+                <h3>Move History</h3>
+                <div id="moveList" class="move-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="/static/api.js"></script>
+    <script src="/static/state.js"></script>
+    <script src="/static/components/board.js"></script>
+    <script src="/static/components/control.js"></script>
+    <script src="/static/components/eval.js"></script>
+    <script src="/static/components/movelist.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

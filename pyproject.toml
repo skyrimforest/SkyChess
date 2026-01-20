@@ -1,0 +1,40 @@
+[project]
+name = "privatepro"
+version = "0.1.0"
+description = "International Chess Research Platform - Algorithm and Service Layers"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    # Core chess library
+    "python-chess>=1.999",
+
+    # Web framework
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+
+    # Data validation
+    "pydantic>=2.5.0",
+
+    # Stockfish engine integration
+    "stockfish>=3.0.0",
+
+    # Optional: For additional features
+    "numpy>=1.24.0",  # For numerical operations
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "W"]
